@@ -1,110 +1,49 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import subprocess
-import json
-import os
-import re
+import yt_dlp
 
 app = Flask(__name__)
+CORS(app)
 
-# Allow Blogger / browser requests
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "success": True,
-        "message": "All Video Downloader API is running",
-        "endpoint": "/download"
-    })
-
-
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({
-        "success": True,
-        "status": "online"
-    })
-
-
-@app.route("/download", methods=["POST", "OPTIONS"])
+@app.route('/download', methods=['POST'])
 def download():
+    data = request.get_json(silent=True) or {}
+    url = data.get('url', '').strip()
 
-    # Browser CORS preflight
-    if request.method == "OPTIONS":
-        return "", 204
+    if not url:
+        return jsonify({"success": False, "error": "No URL provided"}), 400
+
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'format': 'best',
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 '
+                           '(KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36'
+        },
+        'extractor_args': {
+            'tiktok': {'api_hostname': 'api22-normal-c-useast2a.tiktokv.com'}
+        },
+    }
 
     try:
-        data = request.get_json(silent=True) or {}
-        video_url = data.get("url", "").strip()
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
 
-        if not video_url:
-            return jsonify({
-                "success": False,
-                "error": "URL is required"
-            }), 400
+        return jsonify({
+            "success": True,
+            "title": info.get("title", "Video"),
+            "thumbnail": info.get("thumbnail"),
+            "download_url": info.get("url")
+        })
 
-        # Basic URL validation
-        if not re.match(r"^https?://", video_url, re.IGNORECASE):
-            return jsonify({
-                "success": False,
-                "error": "Please enter a valid video URL"
-            }), 400
+    except yt_dlp.utils.DownloadError as e:
+        # Extraction failed (blocked, invalid URL, private video, etc.)
+        return jsonify({"success": False, "error": str(e)}), 200
 
-        # yt-dlp command
-        command = [
-            "yt-dlp",
-
-            # Return JSON only
-            "--dump-single-json",
-
-            # Do not download at this stage
-            "--skip-download",
-
-            # Prefer MP4-compatible formats
-            "-f",
-            "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b",
-
-            # No playlist downloads
-            "--no-playlist",
-
-            # Ignore certificate issues
-            "--no-check-certificates",
-
-            # Don't use local config files
-            "--ignore-config",
-
-            video_url
-        ]
-
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            timeout=90
-        )
-
-        if result.returncode != 0:
-
-            error_message = (
-                result.stderr.strip()
-                or result.stdout.strip()
-                or "Unable to fetch this video."
-            )
-
-            return jsonify({
-                "success": False,
-                "error": error_message[-2000:]
-            }), 500
-
-        if not result.stdout.strip():
-            return jsonify({
-                "success": False,
-                "error": "yt-dlp returned no video information."
-            }), 500
-
-        meta = json.loads(result.stdout)
+    except Exception as e:
+        # Catch-all so the server NEVER crashes with a raw 500 again
+        return jsonify({"success": False, "error": "Server error: " + str(e)}), 200        meta = json.loads(result.stdout)
 
         title = meta.get("title") or "Video"
         thumbnail = meta.get("thumbnail")
