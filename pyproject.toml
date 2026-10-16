@@ -6,5 +6,5 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "flask",
     "flask-cors",
-    "yt-dlp>=2026.9.1",
+   "yt-dlp",
 ]
