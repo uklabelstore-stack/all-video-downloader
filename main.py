@@ -7,8 +7,9 @@ import json
 import os
 import yt_dlp
 
+from flask import Flask
+
 app = Flask(__name__)
-CORS(app)
 
 SITE_URL = "https://vdownloder.xyz"
 SITE_NAME = "VDownloader"
