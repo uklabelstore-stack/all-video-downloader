@@ -174,6 +174,7 @@ footer a { color: #475569; margin: 0 7px; }
     <nav aria-label="Main navigation">
       <a href="/">Home</a>
       <a href="/tools">Free Tools</a>
+      <a href="/blog">Blog</a>
       <a href="/how-to-download-facebook-video">Guide</a>
       <a href="/about">About</a>
       <a href="/contact">Contact</a>
@@ -185,6 +186,7 @@ footer a { color: #475569; margin: 0 7px; }
   <div>&copy; <span id="year"></span> VDownloader</div>
   <p>
     <a href="/tools">Free Tools</a>
+    <a href="/blog">Blog</a>
     <a href="/about">About Us</a>
     <a href="/contact">Contact</a>
     <a href="/privacy-policy">Privacy Policy</a>
@@ -602,7 +604,13 @@ const n=Math.min(64,Math.max(6,+$('len').value||16));const a=new Uint32Array(n);
 $('o').value=[...a].map(x=>c[x%c.length]).join('');};$('g').click();"""
 )
 
+import extra_tools
+extra_tools.add(tool, field, RESULT, COPY_BTN, NOTE)
+
 TOOLS_BY_SLUG = {t["slug"]: t for t in TOOLS}
+
+import blog
+blog.register(app, render_page, TOOLS_BY_SLUG, SITE_URL)
 
 
 def tools_grid(items=None):
@@ -631,7 +639,7 @@ def tools_index():
     )
     return render_page(
         "Free Online Tools for Video Creators | VDownloader",
-        "20 free online tools: YouTube thumbnail downloader, hashtag "
+        "50 free online tools: YouTube thumbnail downloader, hashtag "
         "generator, video size calculator, JSON formatter and more.",
         body, "/tools"
     )
@@ -1016,6 +1024,7 @@ def sitemap():
         "/about", "/contact", "/privacy-policy", "/terms"
     ]
     paths += ["/tools/" + t["slug"] for t in TOOLS]
+    paths += ["/blog"] + ["/blog/" + p["slug"] for p in blog.POSTS]
 
     entries = [
         "<url><loc>" + SITE_URL + p + "</loc>"
