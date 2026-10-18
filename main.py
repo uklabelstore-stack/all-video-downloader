@@ -302,6 +302,8 @@ d.append(a,document.createElement('br'),i);o.append(d);});});"""
 
 import extra_tools
 extra_tools.add(tool, field, RESULT, COPY_BTN, NOTE)
+import more_tools
+more_tools.add(tool, field, RESULT, COPY_BTN, NOTE)
 
 TOOLS_BY_SLUG = {t["slug"]: t for t in TOOLS}
 
@@ -758,7 +760,7 @@ def og_image():
     if Image is None:
         # Pillow not installed or failed to import; return 1x1 transparent PNG
         transparent_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\x0bIDATx\x9cc`\x00\x00\x00\x02\x00\x01\xe2!\xbc\x33\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\x0bIDATx\x9cc`\x00\x00\x00\x02\x00\x01\xe2!\xbc\x33\x00\x00\x00\x[...]"
         )
         return Response(transparent_png, mimetype="image/png")
 
@@ -783,7 +785,7 @@ def og_image():
         font2 = ImageFont.load_default()
 
     w2, h2 = draw.textsize(subtitle, font=font2)
-    draw.text(((width - w2) / 2, (height - h) / 2 + 50), subtitle, font=font2, fill=(226,232,240))
+    draw.text(((width - w2) / 2, (height - h2) / 2 + 50), subtitle, font=font2, fill=(226,232,240))
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -793,7 +795,7 @@ def og_image():
 
 # ---------------- VIDEO DOWNLOAD API ----------------
 
-@app.route("/download", methods=["POST"])
+@app.route("/download", methods=["POST"]) 
 def download():
     data = request.get_json(silent=True) or {}
     url = data.get("url", "")
