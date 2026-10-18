@@ -300,8 +300,9 @@ d.append(a,document.createElement('br'),i);o.append(d);});});"""
 
 # ... rest of tools and code remain unchanged ...
 
-import extra_tools
 extra_tools.add(tool, field, RESULT, COPY_BTN, NOTE)
+import more_tools
+more_tools.add(tool, field, RESULT, COPY_BTN, NOTE)
 
 TOOLS_BY_SLUG = {t["slug"]: t for t in TOOLS}
 
